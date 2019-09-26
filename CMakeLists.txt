@@ -71,9 +71,8 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   sensor_msgs#   std_msgs
+#generate_messages(
+#   DEPENDENCIES std_msgs
 # )
 
 ################################################
@@ -207,3 +206,9 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+add_executable(apriltags_detector src/apriltagdetector.cpp)
+target_link_libraries(apriltags_detector ${catkin_LIBRARIES})
+add_dependencies(apriltags_detector apriltagdetector)
+
+
