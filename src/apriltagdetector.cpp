@@ -92,7 +92,7 @@ public:
     {}
 	
     void setupByTag() {
- 		m_tagDetector = new AprilTags::TagDetector(m_tagCodes);
+ 		//m_tagDetector = new AprilTags::TagDetector(m_tagCodes);
  
 	}
 
@@ -132,7 +132,7 @@ void camCallback(const sensor_msgs::Image::ConstPtr& msg)
   	ROS_INFO("Received image with size: %i x %i", msg->width, msg->height);
 
 	tag detect;
-	detect.m_tagDetector = new AprilTags::TagDetector(AprilTags::tagCodes36h11);
+	//detect.m_tagDetector = new AprilTags::TagDetector(AprilTags::tagCodes36h11);
 
 	cv_bridge::CvImagePtr cv_ptr;
 	try
