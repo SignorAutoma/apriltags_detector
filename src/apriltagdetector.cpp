@@ -7,6 +7,7 @@ using namespace std;
 #include "std_msgs/String.h"
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
+#include <cv_bridge/cv_bridge.h>
 
 #include <fstream>
 #include <iostream>
@@ -20,7 +21,7 @@ using namespace std;
 
 #include "AprilTags/TagDetector.h"
 #include "AprilTags/Tag36h11.h"
-
+#include "AprilTags/TagFamily.h"
 
 /* #include "../include/AprilTags/Tag16h5.h"
 #include "../include/AprilTags/Tag25h7.h"
@@ -61,8 +62,6 @@ void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw, double& pitch, double
 
 class tag {
 	
-	AprilTags::TagDetector* m_tagDetector;
-	AprilTags::TagCodes m_tagCodes;
 	
 	int width;
 	int height;
@@ -71,46 +70,30 @@ class tag {
 	double fy;
 	double px; // camera principal point
 	double py;
-	cv:VideoCApture cap;
 	
 public:
-
+	
+	AprilTags::TagDetector* m_tagDetector;
+	AprilTags::TagCodes m_tagCodes;
+	
 	tag() : 
 	
 		m_tagDetector(NULL),
-		m_tagCodes(AprilTags::tagCodes36h11)
+		m_tagCodes(AprilTags::tagCodes36h11),
 		
 		width(640),
 		height(480),
 		tagSize(0.166),
 		fx(600),
 		fy(600),
-		px(m_width/2),
-		py(m_height/2)
+		px(width/2),
+		py(height/2)
 		
     {}
 	
     void setupByTag() {
-		m_tagDetector = new AprilTags::TagDetector(AprilTags::tagCodes36h11)
-
-	}
-    void playCam() {
-		string video_str = "/dev/video0";
-		
-		m_cap = cv::VideoCapture(0);
-		if(!m_cap.isOpened()) {
-			cerr << "ERROR: Can't find video device " << 0 << "\n";
-			exit(1);
-		}
-		
-		m_cap.set(CV_CAP_PROP_FRAME_WIDTH, m_width);
-		m_cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_height);
-		
-		cout << "Camera opened" << endl;
-		cout << "Actual resolution: "
-			 << m_cap.get(CV_CAP_PROP_FRAME_WIDTH) << "x"
-			 << m_cap.get(CV_CAP_PROP_FRAME_HEIGHT) << endl;
-
+ 		m_tagDetector = new AprilTags::TagDetector(m_tagCodes);
+ 
 	}
 
 	void detection_print(AprilTags::TagDetection& detection) const {
@@ -119,7 +102,7 @@ public:
 		//Get relative position of the tag 
 		Eigen::Vector3d translation;
 		Eigen::Matrix3d rotation;
-		detection.getRelativeTranslationRotation(m_tagSize, m_fx, m_fy, m_px, m_py,
+		detection.getRelativeTranslationRotation(tagSize, fx, fy, px, py,
 												translation, rotation);
 
 		Eigen::Matrix3d F;
@@ -139,18 +122,17 @@ public:
 				<< ", pitch=" << pitch
 				<< ", roll=" << roll
 				<< endl;
-	}
-
-	void imageConsumer() {
-	
-
-	}
-
-} 
+	} 
+ 
+};
 
 void camCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
+
   	ROS_INFO("Received image with size: %i x %i", msg->width, msg->height);
+
+	tag detect;
+	detect.m_tagDetector = new AprilTags::TagDetector(AprilTags::tagCodes36h11);
 
 	cv_bridge::CvImagePtr cv_ptr;
 	try
@@ -166,14 +148,14 @@ void camCallback(const sensor_msgs::Image::ConstPtr& msg)
 	cv::Mat gray;
 
 
-	cv::cvtColor(image, gray, CV_BGR2GRAY); //REALLY NEEDED?
-	vector<AprilTags::TagDetection> detections = m_tagDetector->extractTags(gray);
-
+	cv::cvtColor(image, gray, CV_BGR2GRAY); 
+ /* 	vector<AprilTags::TagDetection> detections = m_tagDetector->extractTags(gray);
+ 
 	cout << detections.size() << " tags detected:" << endl;
 		for (int i=0; i<detections.size(); i++) {
-		print_detection(detections[i]);
-	}
-			
+		detect.detection_print(detections[i]);
+	} */
+			  
 }
 
 int main(int argc, char** argv) 
@@ -185,12 +167,6 @@ int main(int argc, char** argv)
 
 	ros::Subscriber camera_image_sub = nh.subscribe("/usb_cam/image_raw", 10, camCallback);
 	
-	/*
-	Tag apriltag;
-	apriltag.playCam()*/
-/* 
-	ROS_INFO("%s", msg.data.c_str());
-    chatter_pub.publish(msg); */
 
 	ros::spin();
 	

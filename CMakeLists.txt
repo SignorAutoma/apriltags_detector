@@ -30,6 +30,10 @@ catkin_package(
     eigen3
 )
 
+file(GLOB SOURCE_FILES "src/*.cc")
+include_directories(AprilTags . /opt/local/include)
+add_library(apriltags ${SOURCE_FILES})
+
 include_directories(include)
 include_directories(${catkin_INCLUDE_DIRS})
 include_directories(${Eigen_INCLUDE_DIRS})
