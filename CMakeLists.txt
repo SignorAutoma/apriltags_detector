@@ -8,7 +8,9 @@ project(apriltags_detector)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+##list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
@@ -17,30 +19,53 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  message_generation
+
 )
 
-find_package(Eigen3 REQUIRED)
+add_message_files(
+   FILES
+   AprilTag.msg
+   AprilTagList.msg
+)
+
+
+generate_messages(
+  DEPENDENCIES
+  sensor_msgs#   std_msgs
+)
+
+
 
 catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS
     roscpp
     std_msgs 
+    message_runtime
   DEPENDS
     eigen3
 )
+find_package(Eigen3 REQUIRED)
 
-file(GLOB SOURCE_FILES "src/*.cc")
-include_directories(AprilTags . /opt/local/include)
-add_library(apriltags ${SOURCE_FILES})
-
-include_directories(include)
+include_directories(include /usr/include/eigen3)
 include_directories(${catkin_INCLUDE_DIRS})
-include_directories(${Eigen_INCLUDE_DIRS})
-include_directories(AprilTags . /opt/local/include)
+file(GLOB SOURCE_FILE "src/AprilTags/*.cc")
+add_executable(apriltags_detector src/apriltagdetector.cpp ${SOURCE_FILES})
 
-add_executable(apriltags_detector src/apriltagdetector.cpp)
 target_link_libraries(apriltags_detector ${catkin_LIBRARIES})
-add_dependencies(apriltags_detector apriltagdetector)
+
+#~ file(GLOB SOURCE_FILES "src/AprilTags/*.cc")
+#~ include_directories(AprilTags . /opt/local/include)
+#~ add_library(apriltags ${SOURCE_FILES})
+
+#~ include_directories(include)
+#~ include_directories(${catkin_INCLUDE_DIRS})
+#~ include_directories(${Eigen_INCLUDE_DIRS})
+#~ include_directories(AprilTags . /opt/local/include)
+
+#~ add_executable(apriltags_detector src/apriltagdetector.cpp)
+#~ target_link_libraries(apriltags_detector ${catkin_LIBRARIES})
+#~ add_dependencies(apriltags_detector apriltagdetector)
 
 
