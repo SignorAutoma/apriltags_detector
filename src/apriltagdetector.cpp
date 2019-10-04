@@ -35,6 +35,8 @@ const double TWOPI = 2.0*PI;
 
 
 inline double standardRad(double t) {
+		//cout << "------------ DEBUG standardRad--------------"<< endl;
+
 		if (t >= 0.) {
 			t = fmod(t+PI, TWOPI) - PI;
 		} else {
@@ -44,6 +46,8 @@ inline double standardRad(double t) {
 }
 //rotation matrix to euler
 void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw, double& pitch, double& roll) {
+		//cout << "------------ DEBUG wRo_to_euler --------------"<< endl;
+
     yaw = standardRad(atan2(wRo(1,0), wRo(0,0)));
     double c = cos(yaw);
     double s = sin(yaw);
@@ -85,30 +89,37 @@ public:
 		fy(600),
 		px(width/2),
 		py(height/2)
-	{	
-		cout << "------------ DEBUG TAG CREATE--------------"<< endl;
-    	subscriber = it_.subscribe("/camera/image_raw", 1, &tagToDetect::camCallback, this);
-		tag_publisher = nh.advertise<apriltags_detector::AprilTagList>("/apriltags_detector",100);
+	{
+		
+			cout << "------------ DEBUG TAG STARTUP--------------"<< endl;
 
-		ros::NodeHandle private_nh("~"); //resolve namespace issue with a private namespace -> mutliistances allowed
-		private_nh.param<double>("fx", fx, 600.0);
-    	private_nh.param<double>("tagSizeCm", tagSize, 16.6);
-    	
-		fy = fx; // boh
-		tagSize = tagSize /100;
+			subscriber = it_.subscribe("/usb_cam/image_raw", 1, &tagToDetect::camCallback,this);
 
-		tagDetector = new AprilTags::TagDetector(tag_codes);
-		cout << "got focal length " << fx << endl; //dbug
-    	cout << "got tag size " << tagSize << endl;
+
+			tag_publisher = nh.advertise<apriltags_detector::AprilTagList>("/apriltags_detector",100);
+
+			ros::NodeHandle private_nh("~"); //resolve namespace issue with a private namespace -> mutliistances allowed
+			private_nh.param<double>("fx", fx, 600.0);
+			private_nh.param<double>("tagSizeCm", tagSize, 16.6);
+			
+			fy = fx; // boh
+			tagSize = tagSize /100;
+
+			cout << "got focal length " << fx << endl; //dbug
+			tagDetector = new AprilTags::TagDetector(tag_codes);
+			cout << "got tag size " << tagSize << endl;
+
 
 	}
 
 	apriltags_detector::AprilTag detection_print(AprilTags::TagDetection& detection, int width, int height) {
 		
+		 cout << "  Id: " << detection.id
+         << " (Hamming: " << detection.hammingDistance << ")";
+
 		Eigen::Vector3d translation;
 		Eigen::Matrix3d rotation;
-		detection.getRelativeTranslationRotation(tagSize, fx, fy, px, py,
-												translation, rotation);
+		detection.getRelativeTranslationRotation(tagSize, fx, fy, px, py, translation, rotation);
 
 		Eigen::Matrix3d F;
 		F <<
@@ -116,7 +127,7 @@ public:
 		0,  -1,  0,
 		0,  0,  1;
 
-		Eigen::Matrix3d fixed_rot = F * rotation;
+		Eigen::Matrix3d fixed_rot = F * 10;
 		double yaw, pitch, roll;
 
 		wRo_to_euler(fixed_rot, yaw, pitch, roll);
@@ -148,7 +159,7 @@ public:
 	void camCallback(const sensor_msgs::ImageConstPtr& img_msg)
 	{
 
-		ROS_INFO("Received image with size: %i x %i", img_msg->width, img_msg->height);
+		//ROS_INFO("Received image with size: %i x %i", img_msg->width, img_msg->height);
 
 		cv_bridge::CvImagePtr cv_ptr;
 		try
@@ -169,7 +180,7 @@ public:
 		vector<apriltags_detector::AprilTag> msgs;
 			
 		
-		cout << detections.size() << " tags detected:" << endl;	
+		//cout << detections.size() << " tags detected:" << endl;	
 		for (int i=0; i<detections.size(); i++) {
 			msgs.push_back(detection_print(detections[i], cv_ptr -> image.cols, cv_ptr -> image.rows));
 		}
@@ -187,9 +198,10 @@ public:
 int main(int argc, char** argv) 
 {
 	ros::init(argc, argv, "apriltags_detector");
-	cout << "-----------DEBUG MAIN--------------"<< endl;
 
-	tagToDetect newTagDetection;
+	tagToDetect* newTagDetection = new tagToDetect();
+
+
 	ros::spin();
 	
 	return 0;

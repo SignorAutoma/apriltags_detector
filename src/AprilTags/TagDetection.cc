@@ -1,5 +1,7 @@
+using namespace std;
 
 #include <opencv2/opencv.hpp>
+#include <unistd.h>
 
 #include "AprilTags/TagDetection.h"
 #include "AprilTags/MathUtil.h"
@@ -75,9 +77,11 @@ bool TagDetection::overlapsTooMuch(const TagDetection &other) const {
 }
 
 Eigen::Matrix4d TagDetection::getRelativeTransform(double tag_size, double fx, double fy, double px, double py) const {
+
   std::vector<cv::Point3f> objPts;
   std::vector<cv::Point2f> imgPts;
   double s = tag_size/2.;
+
   objPts.push_back(cv::Point3f(-s,-s, 0));
   objPts.push_back(cv::Point3f( s,-s, 0));
   objPts.push_back(cv::Point3f( s, s, 0));
@@ -92,15 +96,21 @@ Eigen::Matrix4d TagDetection::getRelativeTransform(double tag_size, double fx, d
   imgPts.push_back(cv::Point2f(p3.first, p3.second));
   imgPts.push_back(cv::Point2f(p4.first, p4.second));
 
+
   cv::Mat rvec, tvec;
   cv::Matx33f cameraMatrix(
                            fx, 0, px,
                            0, fy, py,
                            0,  0,  1);
+  
+
   cv::Vec4f distParam(0,0,0,0); // all 0?
+  
+
   cv::solvePnP(objPts, imgPts, cameraMatrix, distParam, rvec, tvec);
-  cv::Matx33d r;
+  cv::Matx33f r;
   cv::Rodrigues(rvec, r);
+
   Eigen::Matrix3d wRo;
   wRo << r(0,0), r(0,1), r(0,2), r(1,0), r(1,1), r(1,2), r(2,0), r(2,1), r(2,2);
 
@@ -114,8 +124,7 @@ Eigen::Matrix4d TagDetection::getRelativeTransform(double tag_size, double fx, d
 
 void TagDetection::getRelativeTranslationRotation(double tag_size, double fx, double fy, double px, double py,
                                                   Eigen::Vector3d& trans, Eigen::Matrix3d& rot) const {
-  Eigen::Matrix4d T =
-    getRelativeTransform(tag_size, fx, fy, px, py);
+  Eigen::Matrix4d T = getRelativeTransform(tag_size, fx, fy, px, py);
 
   // converting from camera frame (z forward, x right, y down) to
   // object frame (x forward, y left, z up)
