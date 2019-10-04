@@ -115,7 +115,7 @@ public:
 	apriltags_detector::AprilTag detection_print(AprilTags::TagDetection& detection, int width, int height) {
 		
 		 cout << "  Id: " << detection.id
-         << " (Hamming: " << detection.hammingDistance << ")";
+         << " (Hamming: " << detection.hammingDistance << ")\n";
 
 		Eigen::Vector3d translation;
 		Eigen::Matrix3d rotation;
@@ -136,7 +136,7 @@ public:
 				<< "m, x=" << translation(0)
 				<< ", y=" << translation(1)
 				<< ", z=" << translation(2)
-				<< ", yaw=" << yaw
+				<< "\n yaw=" << yaw
 				<< ", pitch=" << pitch
 				<< ", roll=" << roll
 				<< endl;
@@ -180,7 +180,7 @@ public:
 		vector<apriltags_detector::AprilTag> msgs;
 			
 		
-		//cout << detections.size() << " tags detected:" << endl;	
+		if(detections.size() > 0) cout << "###########################\n" << detections.size() << " tags detected\n ###########################" << endl;	
 		for (int i=0; i<detections.size(); i++) {
 			msgs.push_back(detection_print(detections[i], cv_ptr -> image.cols, cv_ptr -> image.rows));
 		}
