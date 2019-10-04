@@ -9,7 +9,7 @@
 #include <vector>
 
 
-#include "apriltags_detector/AprilTag.h"  // ROS msg
+#include "april_tag/AprilTag.h"  // ROS msg
 
 namespace AprilTags {
 

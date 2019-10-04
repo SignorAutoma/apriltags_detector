@@ -8,12 +8,17 @@ using namespace std;
 #include <sensor_msgs/image_encodings.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include "AprilTags/TagDetector.h"
-#include "AprilTags/Tag36h11.h"
+
+
+#include <apriltag/apriltag.h>
+#include <apriltag/tag36h11.h>
+
+
 
 #include "apriltags_detector/AprilTag.h" // rosmsg
 #include "apriltags_detector/AprilTagList.h" 
 
+#include <Eigen/Core>
 #include <fstream>
 #include <iostream>
 #include <cstdlib>
@@ -53,10 +58,10 @@ void wRo_to_euler(const Eigen::Matrix3d& wRo, double& yaw, double& pitch, double
 
 class tagToDetect {
 	
-	AprilTags::TagDetector* tagDetector;
-	AprilTags::TagCodes tag_codes;
-
 	
+	apriltag_detector_t * tagDetector;
+	apriltag_family_t *tf;
+
 	int width;
 	int height;
 	
@@ -77,7 +82,7 @@ public:
 	tagToDetect() : 
 	    it_(nh), 
 		tagDetector(NULL),
-		tag_codes(AprilTags::tagCodes36h11),
+		tf(NULL),
 		width(640),
 		height(480),
 		tagSize(0.166),
@@ -86,23 +91,29 @@ public:
 		px(width/2),
 		py(height/2)
 	{	
+
+		//usb_cam or camera?
     	subscriber = it_.subscribe("/camera/image_raw", 1, &tagToDetect::camCallback, this);
 		tag_publisher = nh.advertise<apriltags_detector::AprilTagList>("/apriltags_detector",100);
 
+		/*
 		ros::NodeHandle private_nh("~"); //resolve namespace issue with a private namespace -> mutliistances allowed
 		private_nh.param<double>("fx", fx, 600.0);
     	private_nh.param<double>("tagSizeCm", tagSize, 16.6);
-    	
-		fy = fx; // boh
+    	*/
+		fy = fx;
 		tagSize = tagSize /100;
 
-		tagDetector = new AprilTags::TagDetector(tag_codes);
+		tagDetector = apriltag_detector_create();
+		tf = tag36h11_create();
+		apriltag_detector_add_family(tagDetector, tf);
+
 		cout << "got focal length " << fx << endl; //dbug
     	cout << "got tag size " << tagSize << endl;
 
 	}
 
-	apriltags_detector::AprilTag detection_print(AprilTags::TagDetection& detection, int width, int height) {
+	apriltags_detector::AprilTag detection_print(apriltag_detection_t& detection) {
 		
 		Eigen::Vector3d translation;
 		Eigen::Matrix3d rotation;
@@ -132,7 +143,7 @@ public:
 		apriltags_detector::AprilTag msg;
 
 		msg.id = detection.id;
-		msg.hamming_distance = detection.hammingDistance;
+		msg.hamming_distance = detection.hamming;
 		msg.distance = translation.norm() * 100; //* 100 is due to cm to m
 		msg.x = translation(0) * 100;
 		msg.y = translation(1) * 100;
@@ -164,13 +175,13 @@ public:
 
 		cv::cvtColor(image, image_gray, CV_BGR2GRAY); 
 
-	    vector<AprilTags::TagDetection> detections = tagDetector->extractTags(image_gray);
+	    vector<apriltag_detector> detections = tagDetector->extractTags(image_gray);
 		vector<apriltags_detector::AprilTag> msgs;
 			
 		
 		cout << detections.size() << " tags detected:" << endl;	
 		for (int i=0; i<detections.size(); i++) {
-			msgs.push_back(detection_print(detections[i], cv_ptr -> image.cols, cv_ptr -> image.rows));
+			msgs.push_back(detection_print(detections[i]);
 		}
 		
 		if(detections.size() > 0) {
