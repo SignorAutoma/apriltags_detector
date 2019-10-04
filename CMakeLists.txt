@@ -47,13 +47,32 @@ catkin_package(
     eigen3
 )
 find_package(Eigen3 REQUIRED)
+find_package(OpenCV REQUIRED)
 
+include_directories(include ${OpenCV_INCLUDE_DIRS})
 include_directories(include /usr/include/eigen3)
 include_directories(${catkin_INCLUDE_DIRS})
-file(GLOB SOURCE_FILE "src/AprilTags/*.cc")
-add_executable(apriltags_detector src/apriltagdetector.cpp ${SOURCE_FILES})
 
-target_link_libraries(apriltags_detector ${catkin_LIBRARIES})
+add_executable(
+	apriltags_detector 
+	src/apriltagdetector.cpp 
+	src/AprilTags/Edge.cc
+	src/AprilTags/FloatImage.cc
+	src/AprilTags/GLine2D.cc
+	src/AprilTags/GLineSegment2D.cc
+	src/AprilTags/Gaussian.cc
+	src/AprilTags/GrayModel.cc
+	src/AprilTags/Homography33.cc
+	src/AprilTags/MathUtil.cc
+	src/AprilTags/Quad.cc
+	src/AprilTags/Segment.cc
+	src/AprilTags/TagDetection.cc
+	src/AprilTags/TagDetector.cc
+	src/AprilTags/TagFamily.cc
+	src/AprilTags/UnionFindSimple.cc
+)
+target_link_libraries(apriltags_detector ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES} ${OpenCV_LIBS})
+add_dependencies(apriltags_detector apriltagdetector)
 
 #~ file(GLOB SOURCE_FILES "src/AprilTags/*.cc")
 #~ include_directories(AprilTags . /opt/local/include)

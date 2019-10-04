@@ -1,0 +1,15 @@
+Edge.cc
+FloatImage.cc
+GLine2D.cc
+GLineSegment2D.cc
+Gaussian.cc
+GrayModel.cc
+Homography33.cc
+MathUtil.cc
+Quad.cc
+Segment.cc
+TagDetection.cc
+TagDetector.cc
+TagFamily.cc
+UnionFindSimple.cc
+fails

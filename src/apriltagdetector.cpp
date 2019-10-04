@@ -86,6 +86,7 @@ public:
 		px(width/2),
 		py(height/2)
 	{	
+		cout << "------------ DEBUG TAG CREATE--------------"<< endl;
     	subscriber = it_.subscribe("/camera/image_raw", 1, &tagToDetect::camCallback, this);
 		tag_publisher = nh.advertise<apriltags_detector::AprilTagList>("/apriltags_detector",100);
 
@@ -186,7 +187,8 @@ public:
 int main(int argc, char** argv) 
 {
 	ros::init(argc, argv, "apriltags_detector");
-	
+	cout << "-----------DEBUG MAIN--------------"<< endl;
+
 	tagToDetect newTagDetection;
 	ros::spin();
 	
