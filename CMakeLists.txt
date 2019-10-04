@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(apriltags_detector)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -35,8 +35,6 @@ generate_messages(
   sensor_msgs#   std_msgs
 )
 
-
-
 catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS
@@ -48,12 +46,14 @@ catkin_package(
 )
 find_package(Eigen3 REQUIRED)
 
-include_directories(include /usr/include/eigen3)
+include_directories(${apriltags_INCLUDE_DIRS})
+include_directories(${Eigen_INCLUDE_DIRS})
+message("apriltag dirs : $apriltags_INCLUDE_DIRS")
 include_directories(${catkin_INCLUDE_DIRS})
-file(GLOB SOURCE_FILE "src/AprilTags/*.cc")
-add_executable(apriltags_detector src/apriltagdetector.cpp ${SOURCE_FILES})
+add_executable(apriltags_detector src/apriltagdetector.cpp)
 
-target_link_libraries(apriltags_detector ${catkin_LIBRARIES})
+target_link_libraries(apriltags_detector ${catkin_LIBRARIES} ${apriltags_LIBRARIES})
+
 
 #~ file(GLOB SOURCE_FILES "src/AprilTags/*.cc")
 #~ include_directories(AprilTags . /opt/local/include)
