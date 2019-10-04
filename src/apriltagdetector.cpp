@@ -91,7 +91,7 @@ public:
 		py(height/2)
 	{
 		
-			cout << "------------ DEBUG TAG STARTUP--------------"<< endl;
+			//cout << "------------ DEBUG TAG STARTUP--------------"<< endl;
 
 			subscriber = it_.subscribe("/usb_cam/image_raw", 1, &tagToDetect::camCallback,this);
 
