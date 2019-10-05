@@ -127,7 +127,7 @@ public:
 		0,  -1,  0,
 		0,  0,  1;
 
-		Eigen::Matrix3d fixed_rot = F * 10;
+		Eigen::Matrix3d fixed_rot = F * rotation;
 		double yaw, pitch, roll;
 
 		wRo_to_euler(fixed_rot, yaw, pitch, roll);
